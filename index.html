@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vesto - Smart Outfit Selector</title>
+    <title>Vesto - Smart Outfit Selection</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -32,23 +32,24 @@
                     </select>
                 </div>
 
-                <button id="generate-btn" class="btn-primary">Generuj zestawienie</button>
+                <button id="generate-btn" class="btn-primary">GENERUJ ZESTAWIENIE</button>
             </div>
 
-            <div id="message"></div>
+            <div id="message" class="message"></div>
             <div id="weather"></div>
             <div id="outfit" class="outfit-grid"></div>
             
-            <div id="ai-alternatives" class="ai-section hidden">
+            <!-- Sekcja AI - ukryta do czasu wygenerowania -->
+            <div id="ai-section" class="ai-section" style="display: none;">
                 <div class="ai-header">
                     <h3>Alternatywne kombinacje AI</h3>
                     <p>Inteligentne propozycje dopasowane do Twoich preferencji</p>
                 </div>
                 <button id="ai-btn" class="btn-secondary">
                     <span class="ai-icon">✨</span>
-                    Wygeneruj 3 alternatywy AI
+                    WYGENERUJ 3 ALTERNATYWY AI
                 </button>
-                <div id="ai-results" class="ai-results hidden"></div>
+                <div id="ai-results" class="ai-results" style="display: none;"></div>
             </div>
         </main>
 
@@ -57,7 +58,14 @@
         </footer>
     </div>
 
-    <script src="js/config.js"></script>
+    <script>
+        const CONFIG = {
+            WEATHER_API_KEY: 'd6cb29904d4b6f1870952db287d60a1e',
+            WEATHER_API_URL: 'https://api.openweathermap.org/data/2.5/weather',
+            DEFAULT_CITY: 'Poznań',
+            AI_ENABLED: true
+        };
+    </script>
     <script src="js/clothes-data.js"></script>
     <script src="js/ai-engine.js"></script>
     <script src="js/app.js"></script>

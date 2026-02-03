@@ -1,118 +1,178 @@
-// Elementy DOM
-const miastoInput = document.getElementById('miasto');
-const okazjaSelect = document.getElementById('okazja');
-const dobierzButton = document.getElementById('dobierz-button');
-const messageDiv = document.getElementById('message');
-const weatherDiv = document.getElementById('weather-info');
-const resultsDiv = document.getElementById('outfit-results');
+// Vesto - Główna aplikacja
+console.log('Vesto loading...');
 
-// Event listener na przycisk
-dobierzButton.addEventListener('click', dobierzStroj);
+let currentOutfit = null;
+let currentWeather = null;
+let currentOccasion = null;
 
-// Event listener na Enter
-miastoInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') dobierzStroj();
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded');
+    
+    const generateBtn = document.getElementById('generate-btn');
+    const aiBtn = document.getElementById('ai-btn');
+    const miastoInput = document.getElementById('miasto');
+    const okazjaSelect = document.getElementById('okazja');
+
+    console.log('Elements:', {
+        generateBtn: !!generateBtn,
+        aiBtn: !!aiBtn,
+        miasto: !!miastoInput,
+        okazja: !!okazjaSelect
+    });
+
+    // Główne generowanie
+    generateBtn.addEventListener('click', async () => {
+        console.log('Generate clicked!');
+        
+        const miasto = miastoInput.value.trim();
+        const okazja = okazjaSelect.value;
+
+        if (!miasto) {
+            showMessage('Podaj miasto', 'error');
+            return;
+        }
+
+        if (!okazja) {
+            showMessage('Wybierz okazję', 'error');
+            return;
+        }
+
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'GENERUJĘ...';
+        showMessage('Analizuję pogodę...', 'loading');
+        
+        try {
+            const weather = await fetchWeather(miasto);
+            console.log('Weather:', weather);
+            
+            displayWeather(weather, miasto);
+            
+            currentWeather = weather;
+            currentOccasion = okazja;
+            
+            const outfit = selectOutfit(okazja, weather.temperatura);
+            console.log('Outfit:', outfit);
+            
+            currentOutfit = outfit;
+            
+            displayOutfit(outfit);
+            showMessage('Zestawienie wygenerowane!', 'success');
+            
+            // POKAŻ SEKCJĘ AI
+            document.getElementById('ai-section').style.display = 'block';
+            document.getElementById('ai-results').style.display = 'none';
+            
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage(`Błąd: ${error.message}`, 'error');
+        } finally {
+            generateBtn.disabled = false;
+            generateBtn.textContent = 'GENERUJ ZESTAWIENIE';
+        }
+    });
+
+    // Generowanie AI
+    aiBtn.addEventListener('click', async () => {
+        console.log('AI clicked!');
+        
+        if (!currentOutfit || !currentWeather) {
+            showMessage('Najpierw wygeneruj główne zestawienie', 'error');
+            return;
+        }
+
+        aiBtn.disabled = true;
+        aiBtn.innerHTML = '<span class="ai-icon">⏳</span> GENERUJĘ...';
+        
+        try {
+            const alternatives = await vestoAI.generateAlternatives(
+                currentOutfit,
+                currentWeather.temperatura,
+                currentOccasion
+            );
+            
+            console.log('AI alternatives:', alternatives);
+            displayAlternatives(alternatives);
+            aiBtn.innerHTML = '<span class="ai-icon">✨</span> REGENERUJ ALTERNATYWY';
+            
+        } catch (error) {
+            console.error('AI Error:', error);
+            showMessage(`Błąd AI: ${error.message}`, 'error');
+        } finally {
+            aiBtn.disabled = false;
+        }
+    });
+
+    // Enter key
+    miastoInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') generateBtn.click();
+    });
+
+    console.log('Vesto initialized!');
 });
 
-// Główna funkcja
-async function dobierzStroj() {
-    const miasto = miastoInput.value.trim();
-    const okazja = okazjaSelect.value;
-
-    if (!miasto) {
-        showMessage('Proszę podać miasto!', 'error');
-        return;
-    }
-
-    if (!okazja) {
-        showMessage('Proszę wybrać okazję!', 'error');
-        return;
-    }
-
-    resultsDiv.innerHTML = '';
-    weatherDiv.innerHTML = '';
-    showMessage('Pobieram pogodę i dobieram strój...', 'loading');
-    dobierzButton.disabled = true;
-
-    try {
-        const pogoda = await pobierzPogode(miasto);
-        wyswietlPogode(pogoda, miasto);
-        const outfit = dobierzUbrania(okazja, pogoda.temperatura);
-        wyswietlPropozycje(outfit);
-        showMessage('Oto moja propozycja! 🎉', 'success');
-    } catch (error) {
-        showMessage(`Błąd: ${error.message}`, 'error');
-        console.error(error);
-    } finally {
-        dobierzButton.disabled = false;
-    }
-}
-
 // Pobieranie pogody
-async function pobierzPogode(miasto) {
+async function fetchWeather(miasto) {
     const url = `${CONFIG.WEATHER_API_URL}?q=${miasto}&appid=${CONFIG.WEATHER_API_KEY}&units=metric&lang=pl`;
+    console.log('Fetching weather:', url);
     
     const response = await fetch(url);
     
     if (!response.ok) {
-        throw new Error('Nie znaleziono miasta. Sprawdź nazwę i spróbuj ponownie.');
+        throw new Error('Nie znaleziono miasta');
     }
     
     const data = await response.json();
-    
     return {
         temperatura: Math.round(data.main.temp),
         opis: data.weather[0].description
     };
 }
 
-// Dobieranie ubrań
-function dobierzUbrania(okazja, temperatura) {
+// Wybór stroju
+function selectOutfit(okazja, temperatura) {
     const outfit = { gora: null, dol: null, buty: null, okrycie: null };
+    let clothes = getByOccasion(okazja);
     
-    let ubrania = getByOccasion(okazja);
-    if (ubrania.length === 0) ubrania = getAllClothes();
+    if (clothes.length === 0) clothes = getAllClothes();
 
-    const gory = ubrania.filter(item => item.category === 'gora');
+    const gory = clothes.filter(item => item.category === 'gora');
     if (gory.length > 0) {
         if (temperatura < 15) {
-            const cieplsze = gory.filter(item => item.warmth >= 3);
-            outfit.gora = cieplsze.length > 0 ? losuj(cieplsze) : losuj(gory);
+            const warm = gory.filter(item => item.warmth >= 3);
+            outfit.gora = warm.length > 0 ? random(warm) : random(gory);
         } else if (temperatura > 25) {
-            const lzejsze = gory.filter(item => item.warmth <= 2);
-            outfit.gora = lzejsze.length > 0 ? losuj(lzejsze) : losuj(gory);
+            const light = gory.filter(item => item.warmth <= 2);
+            outfit.gora = light.length > 0 ? random(light) : random(gory);
         } else {
-            outfit.gora = losuj(gory);
+            outfit.gora = random(gory);
         }
     }
 
-    const doly = ubrania.filter(item => item.category === 'dol');
+    const doly = clothes.filter(item => item.category === 'dol');
     if (doly.length > 0) {
         if (temperatura > 25) {
-            const lekkie = doly.filter(item => item.warmth === 1);
-            outfit.dol = lekkie.length > 0 ? losuj(lekkie) : losuj(doly);
+            const light = doly.filter(item => item.warmth === 1);
+            outfit.dol = light.length > 0 ? random(light) : random(doly);
         } else {
-            outfit.dol = losuj(doly);
+            outfit.dol = random(doly);
         }
     }
 
-    const buty = ubrania.filter(item => item.category === 'buty');
-    if (buty.length > 0) {
-        outfit.buty = losuj(buty);
-    }
+    const buty = clothes.filter(item => item.category === 'buty');
+    if (buty.length > 0) outfit.buty = random(buty);
 
     if (temperatura < 18) {
-        const okrycia = ubrania.filter(item => item.category === 'okrycie');
+        const okrycia = clothes.filter(item => item.category === 'okrycie');
         if (okrycia.length > 0) {
             if (temperatura < 5) {
-                const najcieplejsze = okrycia.filter(item => item.warmth >= 4);
-                outfit.okrycie = najcieplejsze.length > 0 ? losuj(najcieplejsze) : losuj(okrycia);
+                const warmest = okrycia.filter(item => item.warmth >= 4);
+                outfit.okrycie = warmest.length > 0 ? random(warmest) : random(okrycia);
             } else if (temperatura < 12) {
-                const cieplsze = okrycia.filter(item => item.warmth >= 3);
-                outfit.okrycie = cieplsze.length > 0 ? losuj(cieplsze) : losuj(okrycia);
+                const warm = okrycia.filter(item => item.warmth >= 3);
+                outfit.okrycie = warm.length > 0 ? random(warm) : random(okrycia);
             } else {
-                const lzejsze = okrycia.filter(item => item.warmth <= 3);
-                outfit.okrycie = lzejsze.length > 0 ? losuj(lzejsze) : losuj(okrycia);
+                const light = okrycia.filter(item => item.warmth <= 3);
+                outfit.okrycie = light.length > 0 ? random(light) : random(okrycia);
             }
         }
     }
@@ -120,21 +180,19 @@ function dobierzUbrania(okazja, temperatura) {
     return outfit;
 }
 
-function losuj(tablica) {
-    return tablica[Math.floor(Math.random() * tablica.length)];
+function random(array) {
+    return array[Math.floor(Math.random() * array.length)];
 }
 
 // Wyświetlanie pogody
-function wyswietlPogode(pogoda, miasto) {
-    const emoji = getWeatherEmoji(pogoda.temperatura);
-    const tempClass = getTempClass(pogoda.temperatura);
-    
-    weatherDiv.innerHTML = `
-        <div class="weather-card ${tempClass}">
-            <h3>${emoji} Pogoda w ${miasto}</h3>
+function displayWeather(weather, miasto) {
+    const emoji = getWeatherEmoji(weather.temperatura);
+    document.getElementById('weather').innerHTML = `
+        <div class="weather-card">
+            <h3>${emoji} ${miasto}</h3>
             <div class="weather-details">
-                <span class="temp">${pogoda.temperatura}°C</span>
-                <span class="desc">${pogoda.opis}</span>
+                <span class="temp">${weather.temperatura}°C</span>
+                <span class="desc">${weather.opis}</span>
             </div>
         </div>
     `;
@@ -143,86 +201,109 @@ function wyswietlPogode(pogoda, miasto) {
 function getWeatherEmoji(temp) {
     if (temp < 0) return '❄️';
     if (temp < 10) return '🥶';
-    if (temp < 15) return '🌤️';
-    if (temp < 25) return '☀️';
-    if (temp < 30) return '🌞';
+    if (temp < 20) return '☁️';
+    if (temp < 30) return '☀️';
     return '🔥';
 }
 
-function getTempClass(temp) {
-    if (temp < 0) return 'weather-freezing';
-    if (temp < 10) return 'weather-cold';
-    if (temp < 20) return 'weather-cool';
-    if (temp < 30) return 'weather-warm';
-    return 'weather-hot';
-}
+// Wyświetlanie stroju
+function displayOutfit(outfit) {
+    const categories = { 'gora': 'Góra', 'dol': 'Dół', 'okrycie': 'Okrycie', 'buty': 'Buty' };
+    let html = '';
 
-// Wyświetlanie propozycji
-function wyswietlPropozycje(outfit) {
-    resultsDiv.innerHTML = '';
-
-    const kategorie = {
-        'gora': 'Góra',
-        'dol': 'Dół',
-        'okrycie': 'Okrycie',
-        'buty': 'Buty'
-    };
-
-    for (const [kategoria, nazwa] of Object.entries(kategorie)) {
-        const item = outfit[kategoria];
-        
+    for (const [cat, label] of Object.entries(categories)) {
+        const item = outfit[cat];
         if (item) {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'outfit-item';
-            itemDiv.innerHTML = `
-                <h4>${nazwa}</h4>
-                <div class="image-container">
-                    <img src="${item.image}" alt="${item.name}" onerror="this.classList.add('placeholder-img'); this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22400%22%3E%3Crect fill=%22%23e0e0e0%22 width=%22300%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-family=%22Arial%22 font-size=%2224%22 fill=%22%23666%22 text-anchor=%22middle%22 dy=%22.3em%22%3EBrak zdjęcia%3C/text%3E%3C/svg%3E';">
-                </div>
-                <p class="item-name">${item.name}</p>
-                <div class="item-tags">
-                    ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                </div>
-                <div class="item-warmth">
-                    <span class="warmth-label">Ciepło:</span>
-                    ${getWarmthStars(item.warmth)}
+            html += `
+                <div class="outfit-item">
+                    <h4>${label}</h4>
+                    <div class="image-container">
+                        <img src="${item.image}" alt="${item.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22400%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22300%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-family=%22Arial%22 font-size=%2218%22 fill=%22%23999%22 text-anchor=%22middle%22%3EBrak zdjęcia%3C/text%3E%3C/svg%3E';">
+                    </div>
+                    <p class="item-name">${item.name}</p>
+                    <div class="item-tags">
+                        ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                    <div class="item-warmth">
+                        <span class="warmth-label">Ciepło</span>
+                        ${'●'.repeat(item.warmth)}${'○'.repeat(5 - item.warmth)}
+                    </div>
                 </div>
             `;
-            resultsDiv.appendChild(itemDiv);
         }
     }
 
-    if (!outfit.okrycie) {
-        const infoDiv = document.createElement('div');
-        infoDiv.className = 'outfit-item no-jacket-info';
-        infoDiv.innerHTML = `
-            <h4>☀️</h4>
-            <p class="item-name">Bez okrycia</p>
-            <p style="color: #666; font-size: 0.95em;">Na dworze jest wystarczająco ciepło!</p>
-        `;
-        resultsDiv.appendChild(infoDiv);
-    }
+    document.getElementById('outfit').innerHTML = html;
 }
 
-function getWarmthStars(warmth) {
-    const stars = ['🔵', '🔵', '🔵', '🔵', '🔵'];
-    for (let i = 0; i < warmth; i++) {
-        stars[i] = '🔴';
+// Wyświetlanie alternatyw AI
+function displayAlternatives(alternatives) {
+    if (!alternatives || alternatives.length === 0) {
+        showMessage('Nie udało się wygenerować alternatyw', 'error');
+        return;
     }
-    return stars.join('');
+
+    let html = '';
+    alternatives.forEach((alt, index) => {
+        html += `
+            <div class="ai-option">
+                <div class="ai-option-header">
+                    <h4>Opcja ${index + 1}: ${alt.style}</h4>
+                    <div class="ai-confidence">
+                        Dopasowanie AI: ${alt.confidence}%
+                        <span class="ai-confidence-bar">
+                            <span class="ai-confidence-fill" style="width: ${alt.confidence}%"></span>
+                        </span>
+                    </div>
+                    <p style="margin-top: 10px; color: #5a5a5a; font-size: 0.9em;">${alt.reason}</p>
+                </div>
+                <div class="outfit-grid">
+                    ${generateOutfitHTML(alt.outfit)}
+                </div>
+            </div>
+        `;
+    });
+
+    const aiResults = document.getElementById('ai-results');
+    aiResults.innerHTML = html;
+    aiResults.style.display = 'block';
+}
+
+function generateOutfitHTML(outfit) {
+    const categories = { 'gora': 'Góra', 'dol': 'Dół', 'okrycie': 'Okrycie', 'buty': 'Buty' };
+    let html = '';
+
+    for (const [cat, label] of Object.entries(categories)) {
+        const item = outfit[cat];
+        if (item) {
+            html += `
+                <div class="outfit-item">
+                    <h4>${label}</h4>
+                    <div class="image-container">
+                        <img src="${item.image}" alt="${item.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22400%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22300%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 font-family=%22Arial%22 font-size=%2218%22 fill=%22%23999%22 text-anchor=%22middle%22%3EBrak zdjęcia%3C/text%3E%3C/svg%3E';">
+                    </div>
+                    <p class="item-name">${item.name}</p>
+                    <div class="item-tags">
+                        ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    return html;
 }
 
 function showMessage(text, type) {
+    const messageDiv = document.getElementById('message');
     messageDiv.textContent = text;
     messageDiv.className = `message ${type}`;
     messageDiv.style.display = 'block';
+    
+    setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, 5000);
 }
 
-// Komunikat powitalny
-setTimeout(() => {
-    showMessage('Witaj! Podaj miasto i wybierz okazję, aby otrzymać rekomendację stroju 👔', 'info');
-}, 500);
-
-console.log('=== STYLAR - Załadowano ===');
-console.log('Ubrań w bazie:', getAllClothes().length);
-console.log('Gotowy do użycia!');
+console.log('=== VESTO READY ===');
+console.log('Database:', getAllClothes().length, 'items');
