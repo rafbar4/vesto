@@ -3,50 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stylar - Dobór stroju według pogody</title>
+    <title>Vesto - Smart Outfit Selector</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>👔 Stylar</h1>
-            <p class="subtitle">Inteligentny dobór stroju według pogody</p>
+            <img src="images/vesto_logo.png" alt="Vesto" class="logo">
+            <p class="tagline">Smart Outfit Selection</p>
         </header>
 
         <main>
-            <div class="form-container">
-                <div class="form-group">
-                    <label for="miasto">🌍 Miasto:</label>
-                    <input type="text" id="miasto" placeholder="np. Poznań" value="Poznań">
+            <div class="form-card">
+                <div class="input-group">
+                    <label>Miasto</label>
+                    <input type="text" id="miasto" placeholder="Poznań" value="Poznań">
                 </div>
 
-                <div class="form-group">
-                    <label for="okazja">🎯 Okazja:</label>
+                <div class="input-group">
+                    <label>Okazja</label>
                     <select id="okazja">
-                        <option value="">Wybierz okazję</option>
-                        <option value="casual">Casual - Codzienny</option>
-                        <option value="formal">Formalne - Eleganckie</option>
-                        <option value="sport">Sport - Aktywność</option>
-                        <option value="party">Impreza - Wyjście</option>
-                        <option value="work">Praca - Biuro</option>
+                        <option value="">Wybierz...</option>
+                        <option value="casual">Casual</option>
+                        <option value="formal">Formal</option>
+                        <option value="sport">Sport</option>
+                        <option value="party">Party</option>
+                        <option value="work">Work</option>
                     </select>
                 </div>
 
-                <button id="dobierz-button">✨ Dobierz strój</button>
+                <button id="generate-btn" class="btn-primary">Generuj zestawienie</button>
             </div>
 
-            <div id="message" class="message"></div>
-            <div id="weather-info"></div>
-            <div id="outfit-results" class="outfit-results"></div>
+            <div id="message"></div>
+            <div id="weather"></div>
+            <div id="outfit" class="outfit-grid"></div>
+            
+            <div id="ai-alternatives" class="ai-section hidden">
+                <div class="ai-header">
+                    <h3>Alternatywne kombinacje AI</h3>
+                    <p>Inteligentne propozycje dopasowane do Twoich preferencji</p>
+                </div>
+                <button id="ai-btn" class="btn-secondary">
+                    <span class="ai-icon">✨</span>
+                    Wygeneruj 3 alternatywy AI
+                </button>
+                <div id="ai-results" class="ai-results hidden"></div>
+            </div>
         </main>
 
         <footer>
-            <p>Aplikacja webowa - 2025</p>
+            <p>© 2025 Vesto</p>
         </footer>
     </div>
 
     <script src="js/config.js"></script>
     <script src="js/clothes-data.js"></script>
+    <script src="js/ai-engine.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

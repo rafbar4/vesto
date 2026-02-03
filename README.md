@@ -1,114 +1,166 @@
-# 👔 Stylar - Dobór stroju według pogody
+# 👔 Vesto - Smart Outfit Selector
 
-Aplikacja webowa do automatycznego dobierania strojów na podstawie pogody i okazji.
+Minimalistyczna aplikacja do inteligentnego doboru strojów z wykorzystaniem AI.
+
+## ✨ Funkcje
+
+- 🌤️ **Analiza pogody** - rzeczywiste dane z OpenWeatherMap
+- 🎯 **Inteligentny dobór** - algorytm dopasowany do temperatury i okazji
+- 🤖 **AI Alternatywy** - Anthropic Claude generuje 3 dodatkowe propozycje
+- 🎨 **Minimalistyczny design** - czysty interfejs w kolorach Vesto
+- 📱 **Responsywność** - działa na wszystkich urządzeniach
 
 ## 🚀 Szybki start
 
-1. **Dodaj swoje zdjęcia** do folderów:
-   - `images/gora-m/`
-   - `images/dol-m/`
-   - `images/buty-m/`
-   - `images/okrycie-m/`
+1. **Dodaj zdjęcia** do folderów:
+```
+images/
+├── gora-m/
+├── dol-m/
+├── buty-m/
+└── okrycie-m/
+```
 
-2. **Wyślij na GitHub**:
+2. **Skopiuj logo** do `images/vesto_logo.png`
+
+3. **Wyślij na GitHub**:
 ```bash
 git init
 git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/TWOJA-NAZWA/stylar.git
+git commit -m "Vesto - initial commit"
+git remote add origin https://github.com/rafbar4/Vesto.git
 git push -u origin main
 ```
 
-3. **Włącz GitHub Pages**:
+4. **Włącz GitHub Pages**:
    - Settings → Pages
-   - Branch: main
-   - Folder: / (root)
+   - Branch: main, Folder: / (root)
    - Save
 
-## 📁 Nazwy plików (zgodne z kodem)
+## 🤖 Funkcja AI
+
+Vesto wykorzystuje **Anthropic Claude API** do generowania inteligentnych alternatyw:
+
+- Analizuje obecną kombinację
+- Uwzględnia temperaturę i okazję
+- Generuje 3 stylistycznie spójne propozycje
+- Każda propozycja ma wskaźnik dopasowania (confidence score)
+
+**W GitHub Pages:** AI działa automatycznie bez dodatkowej konfiguracji (wykorzystuje claude.ai context)
+
+**Lokalnie:** Potrzebny klucz API Anthropic (opcjonalnie - działa również algorytm fallback)
+
+## 🎨 Kolory Brand
+
+```css
+--primary-black: #2c2c2c
+--secondary-gray: #5a5a5a
+--light-gray: #e8e8e8
+--white: #ffffff
+```
+
+## 📁 Struktura
+
+```
+vesto/
+├── index.html              # Strona główna
+├── css/
+│   └── style.css          # Minimalistyczne style
+├── js/
+│   ├── config.js          # Konfiguracja
+│   ├── clothes-data.js    # Baza ubrań
+│   ├── ai-engine.js       # Silnik AI
+│   └── app.js             # Główna logika
+└── images/
+    ├── vesto_logo.png     # Logo
+    ├── gora-m/            # Zdjęcia
+    ├── dol-m/
+    ├── buty-m/
+    └── okrycie-m/
+```
+
+## 📝 Nazwy plików
 
 ### GÓRA:
-- `t-shirt-vneck.png`
-- `t-shirt-crewneck.png`
-- `polo-m.png`
-- `sweter.png`
-- `koszula-biznesowa-m.png`
-- `koszula-flanelowa.png`
-- `longsleeve.png`
-- `bluza-kaptur.png`
+- t-shirt-vneck.png
+- t-shirt-crewneck.png
+- polo-m.png
+- sweter.png
+- koszula-biznesowa-m.png
+- koszula-flanelowa.png
+- longsleeve.png
+- bluza-kaptur.png
 
 ### DÓŁ:
-- `jeansy-regular.png`
-- `jeansy-slim.png`
-- `chinosy.png`
-- `dresy.png`
-- `spodnie-garnitur-m.png`
-- `szorty-sport.png`
-- `szorty-jeans-m.png`
+- jeansy-regular.png
+- jeansy-slim.png
+- chinosy.png
+- dresy.png
+- spodnie-garnitur-m.png
+- szorty-sport.png
+- szorty-jeans-m.png
 
 ### BUTY:
-- `trampki.png`
-- `buty-sportowe.png`
-- `polbuty-m.png`
-- `sztyblety.png`
+- trampki.png
+- buty-sportowe.png
+- polbuty-m.png
+- sztyblety.png
 
 ### OKRYCIE:
-- `kurtka-jeans.png`
-- `kurtka-puchowa.png`
-- `kurtka-skora.png`
-- `marynarka-m.png`
-- `plaszcz-m.png`
-
-## 🛠️ Technologie
-
-- HTML5
-- CSS3
-- JavaScript (Vanilla)
-- OpenWeatherMap API
-- GitHub Pages
-
-## 📝 Funkcje
-
-- ✅ Pobieranie pogody z API
-- ✅ Inteligentny dobór stroju według temperatury
-- ✅ 5 różnych okazji (casual, formal, sport, party, work)
-- ✅ Responsywny design
-- ✅ Kolorowe gradienty według temperatury
-- ✅ Animacje i efekty hover
-- ✅ Wskaźnik "ciepła" ubrania
+- kurtka-jeans.png
+- kurtka-puchowa.png
+- kurtka-skora.png
+- marynarka-m.png
+- plaszcz-m.png
 
 ## ⚙️ Konfiguracja
 
-Jeśli chcesz użyć własnego klucza API OpenWeatherMap, edytuj `js/config.js`:
-
+`js/config.js`:
 ```javascript
 const CONFIG = {
-    WEATHER_API_KEY: 'twoj-klucz-api',
+    WEATHER_API_KEY: 'twoj_klucz',
     WEATHER_API_URL: 'https://api.openweathermap.org/data/2.5/weather',
-    DEFAULT_CITY: 'Poznań'
+    DEFAULT_CITY: 'Poznań',
+    AI_ENABLED: true
 };
 ```
 
-## 🎨 Personalizacja
+## 🔧 Personalizacja
 
 ### Zmiana kolorów
-Edytuj `css/style.css` - znajdź i zmień gradienty:
+Edytuj zmienne w `css/style.css`:
 ```css
-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+:root {
+    --primary-black: #twoj-kolor;
+    --secondary-gray: #twoj-kolor;
+}
 ```
 
-### Dodanie własnych ubrań
+### Dodanie ubrań
 Edytuj `js/clothes-data.js`:
 ```javascript
 {
     id: 99,
-    name: 'Nazwa ubrania',
+    name: 'Nazwa',
     category: 'gora',
-    image: 'images/gora-m/nazwa-pliku.png',
-    tags: ['casual', 'sport'],
+    image: 'images/gora-m/plik.png',
+    tags: ['casual'],
     warmth: 3
 }
 ```
+
+### Wyłączenie AI
+W `js/config.js`:
+```javascript
+AI_ENABLED: false
+```
+
+## 🛠️ Technologie
+
+- HTML5, CSS3, JavaScript (Vanilla)
+- OpenWeatherMap API (pogoda)
+- Anthropic Claude API (AI)
+- GitHub Pages (hosting)
 
 ## 📱 Testowanie lokalne
 
@@ -116,47 +168,34 @@ Edytuj `js/clothes-data.js`:
 # Python
 python -m http.server 8000
 
-# Node.js
+# Lub Node.js
 npx http-server
 
-# VS Code
-# Zainstaluj rozszerzenie "Live Server"
+# Lub VS Code Live Server
 ```
 
-Otwórz: http://localhost:8000
+## ✅ Checklist
 
-## ✅ Checklist przed wdrożeniem
+- [ ] Logo w `images/vesto_logo.png`
+- [ ] Wszystkie zdjęcia w odpowiednich folderach
+- [ ] Nazwy plików poprawne (małe litery)
+- [ ] Repozytorium publiczne
+- [ ] GitHub Pages włączone
 
-- [ ] Wszystkie zdjęcia są w odpowiednich folderach
-- [ ] Nazwy plików są poprawne (małe litery, myślniki)
-- [ ] Repozytorium jest publiczne
-- [ ] GitHub Pages jest włączone
-- [ ] Poczekałem 2-3 minuty po włączeniu
+## 🔍 Rozwiązywanie problemów
 
-## 🔧 Rozwiązywanie problemów
+**AI nie działa?**
+- Sprawdź konsolę (F12)
+- AI automatycznie przełączy się na algorytm lokalny jeśli API zawiedzie
 
-**Zdjęcia się nie wyświetlają?**
-- Sprawdź nazwy plików (wielkość liter ma znaczenie!)
+**Zdjęcia nie działają?**
+- Sprawdź nazwy plików (wielkość liter!)
 - Upewnij się, że pliki są w odpowiednich folderach
-- Otwórz konsolę (F12) i sprawdź błędy
 
 **Pogoda nie działa?**
-- Klucz API potrzebuje 1-2h na aktywację
-- Sprawdź nazwę miasta (po angielsku działa lepiej)
-- Sprawdź konsolę pod kątem błędów
-
-**Strona pokazuje 404?**
-- Poczekaj 5-10 minut po włączeniu Pages
-- Wyczyść cache: Ctrl+Shift+R
-- Sprawdź czy branch to "main"
-
-## 📞 Pomoc
-
-Jeśli masz problemy:
-1. Sprawdź konsolę przeglądarki (F12)
-2. Sprawdź czy wszystkie pliki są na GitHubie
-3. Sprawdź czy GitHub Pages jest włączone
+- Sprawdź klucz API
+- Klucz potrzebuje 1-2h na aktywację
 
 ---
 
-**Powodzenia! 🎉**
+**Vesto - Inteligentny wybór, każdego dnia** 🎯
